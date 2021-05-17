@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Home = () => {
+const Dashboard = () => {
   const history = useHistory();
   const classes = useStyles();
   const [name, setName] = useState(localStorage.getItem("rideshare") || "");
@@ -102,4 +102,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Dashboard;

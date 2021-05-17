@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
-import logo from "./logo.svg";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { auth, db } from "./firebase";
-import Test from "./components/Test";
 import firebase from "firebase/app";
 import { UserProvider, UserContext } from "./context/UserContext";
-import Button from "@material-ui/core/Button";
+import { Navbar } from "./components/Navbar";
+import Landing from "./views/Landing";
+import Dashboard from "./views/Dashboard";
 
 export default function App() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  const user = useContext(UserContext);
 
   const handleLogout = async () => {
     try {
@@ -32,12 +34,26 @@ export default function App() {
 
   return (
     <div className="App">
-      <UserProvider>
-        <Test />
-
-        <Button onClick={() => signInWithGoogle()}>Sign in</Button>
-        <Button onClick={() => handleLogout()}>Sign out</Button>
-      </UserProvider>
+      <div style={{ backgroundImage: "linear-gradient(#544E4A, #000000)" }}>
+        <UserProvider>
+          <Navbar user={user} />
+          {/* <Test /> */}
+          {/* <Button onClick={() => signInWithGoogle()}>Sign in</Button>
+        <Button onClick={() => handleLogout()}>Sign out</Button> */}
+          <Router>
+            <div>
+              <Switch>
+                <Route path="/">
+                  <Landing />
+                </Route>
+                <Route path="/dashboard">
+                  <Dashboard />
+                </Route>
+              </Switch>
+            </div>
+          </Router>
+        </UserProvider>
+      </div>
     </div>
   );
 }
