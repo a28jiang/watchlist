@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Row, Col } from "reactstrap";
-import Button from "@material-ui/core/Button";
+import { UserContext } from "../context/UserContext";
+import { Button, Avatar } from "@material-ui/core";
+import { handleLogout, signInWithGoogle } from "../services/userService";
 
 const useStyles = makeStyles((theme) => ({
   navbar: {
@@ -10,16 +12,27 @@ const useStyles = makeStyles((theme) => ({
     padding: "8px 16px",
   },
   button: {
+    "& span": {
+      fontSize: "18px",
+      paddingLeft: "12px",
+      fontWeight: "bold",
+    },
+  },
+  buttonBar: {
     alignSelf: "flex-end",
+    margin: "2% 4%",
+  },
+  avatarStyle: {
+    height: "72px",
+    width: "72px",
   },
 }));
 
-export const Navbar = ({ user }) => {
+export const Navbar = () => {
   const classes = useStyles();
-  // const [signedIn, setSignedIn] = useState(false);
-  // const user = useContext(UserContext);
-  // console.log("test", user);
-  // const [error, setError] = useState("");
+  const user = useContext(UserContext);
+
+  console.log("base", user);
 
   useEffect(() => {
     console.log("appuser", user);
@@ -27,21 +40,35 @@ export const Navbar = ({ user }) => {
 
   return (
     <Row className={classes.navbar}>
-      <div className={classes.button}>
-        <Button>
-          <span
-            style={{ fontSize: "18px", fontWeight: "bold", color: "#FFCD6B" }}
-          >
-            LOGIN
-          </span>
-        </Button>
-        <Button className={classes.button}>
-          <span
-            style={{ fontSize: "18px", fontWeight: "bold", color: "#FFEDC9" }}
-          >
-            SIGN UP
-          </span>
-        </Button>
+      <div className={classes.buttonBar}>
+        {user ? (
+          <Button onClick={() => handleLogout()}>
+            <Avatar
+              alt={user.displayName}
+              src={user.photoURL}
+              className={classes.avatarStyle}
+            />
+          </Button>
+        ) : (
+          <>
+            <Button className={classes.button}>
+              <span
+                style={{ color: "#FFCD6B" }}
+                onClick={() => signInWithGoogle()}
+              >
+                LOGIN
+              </span>
+            </Button>
+            <Button className={classes.button}>
+              <span
+                style={{ color: "#FFEDC9" }}
+                onClick={() => signInWithGoogle()}
+              >
+                SIGN UP
+              </span>
+            </Button>
+          </>
+        )}
       </div>
     </Row>
   );

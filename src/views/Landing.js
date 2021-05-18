@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Container, Row, Col } from "reactstrap";
+import { Row, Col } from "reactstrap";
 import { makeStyles } from "@material-ui/core/styles";
 import { useHistory } from "react-router-dom";
 import Button from "@material-ui/core/Button";
@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
 
   header: {
     fontFamily: "typeface-playfair-display",
-    fontWeight: "500",
+    fontWeight: "bold",
     color: "#FFEDC9",
     [theme.breakpoints.down("xs")]: {
       fontSize: "3vw",
@@ -46,7 +46,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Landing = () => {
-  const history = useHistory();
   const classes = useStyles();
   const [name, setName] = useState(localStorage.getItem("rideshare") || "");
   return (
