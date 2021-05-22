@@ -1,9 +1,11 @@
-import React, { useState } from "react";
-import { Container, Row } from "reactstrap";
+import React, { useState, useEffect } from "react";
+import { Row, Col } from "reactstrap";
 import { makeStyles } from "@material-ui/core/styles";
 import { useHistory } from "react-router-dom";
-import Button from "@material-ui/core/Button";
-import { TextField } from "@material-ui/core";
+import { Button, CircularProgress, TextField } from "@material-ui/core";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import { getTrending, searchMovie, searchTV } from "../services/movieService";
+import { StyledTextField } from "../components/SharedComponent";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -49,55 +51,48 @@ const useStyles = makeStyles((theme) => ({
 const Dashboard = () => {
   const history = useHistory();
   const classes = useStyles();
-  const [name, setName] = useState(localStorage.getItem("rideshare") || "");
+  const [options, setOptions] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const searchDB = (query) => {
+    console.log(query, loading);
+    if (query.length >= 3) {
+      setLoading(true);
+      let results;
+
+      setTimeout(() => {
+        searchTV(query).then((val) => setOptions(val));
+        setLoading(false);
+      }, 750);
+    }
+  };
+
   return (
-    <div style={{ backgroundImage: "linear-gradient(#fffcf8, #b7dfe9)" }}>
-      <Container className={classes.container}>
-        <div>
-          <Row className={classes.centered}>
-            <h1 className={classes.header}>
-              drive<span style={{ color: "#579fa3" }}>.ai 🚘</span>
-            </h1>
-          </Row>
-          <Row className={classes.centered}>
-            <p style={{ color: "gray" }}>
-              How long you can last in the ridesharing industry?
-            </p>
-          </Row>
-          <Row className={classes.centered}>
+    <div style={{ height: "100vh" }}>
+      <Row className={classes.centered}>
+        <Autocomplete
+          style={{
+            width: "80%",
+            padding: "8px 16px",
+            backgroundColor: "white",
+            borderRadius: "24px",
+          }}
+          options={options}
+          getOptionLabel={(option) => option.name}
+          autoComplete
+          includeInputInList
+          onInputChange={(e, val) => searchDB(val)}
+          renderInput={(params) => (
             <TextField
-              className={classes.userField}
-              variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Set a nickname"
-              inputProps={{
-                style: {
-                  padding: "12px 16px",
-                },
-              }}
+              {...params}
+              InputProps={{ ...params.InputProps, disableUnderline: true }}
+              placeholder="Start tracking your favourite series"
             />
-          </Row>
-          <Row className={classes.centered}>
-            <Button
-              disabled={name === ""}
-              style={{
-                marginTop: "32px",
-                border: "2px solid",
-              }}
-              onClick={() => {
-                localStorage.setItem("rideshare", name);
-                history.push("/game");
-              }}
-              size="large"
-              variant="outlined"
-              color="primary"
-            >
-              Let's Go
-            </Button>
-          </Row>
-        </div>
-      </Container>
+          )}
+        />
+      </Row>
     </div>
   );
 };

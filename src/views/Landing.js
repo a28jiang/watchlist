@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Row, Col } from "reactstrap";
 import { makeStyles } from "@material-ui/core/styles";
 import { useHistory } from "react-router-dom";
-import Button from "@material-ui/core/Button";
+import { UserContext } from "../context/UserContext";
+import { signInWithGoogle } from "../services/userService";
 import { StyledTextField, StyledButton } from "../components/SharedComponent";
 import hero from "../assets/hero.png";
 
@@ -47,7 +48,9 @@ const useStyles = makeStyles((theme) => ({
 
 const Landing = () => {
   const classes = useStyles();
-  const [name, setName] = useState(localStorage.getItem("rideshare") || "");
+  const user = useContext(UserContext);
+  const history = useHistory();
+
   return (
     <div>
       <Row className={classes.container}>
@@ -62,7 +65,12 @@ const Landing = () => {
               <p className={classes.subtitle}>binging simplified</p>
             </Row>
             <Row style={{ marginTop: "10vh" }}>
-              <StyledButton onClick={() => console.log("hi")} text="LET'S GO" />
+              <StyledButton
+                onClick={() => {
+                  user ? history.push("/dashboard") : signInWithGoogle();
+                }}
+                text="LET'S GO"
+              />
               <StyledButton
                 onClick={() => console.log("hi")}
                 text="LEARN MORE"

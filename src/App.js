@@ -12,17 +12,14 @@ export default function App() {
       <div style={{ backgroundImage: "linear-gradient(#544E4A, #000000)" }}>
         <UserProvider>
           <Navbar />
-          {/* <Test /> */}
-          {/* <Button onClick={() => signInWithGoogle()}>Sign in</Button>
-        <Button onClick={() => handleLogout()}>Sign out</Button> */}
           <Router>
             <div>
               <Switch>
-                <Route path="/">
-                  <Landing />
-                </Route>
                 <Route path="/dashboard">
                   <Dashboard />
+                </Route>
+                <Route path="/">
+                  <Landing />
                 </Route>
               </Switch>
             </div>

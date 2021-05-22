@@ -26,10 +26,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const StyledTextField = ({ value, setValue, placeholder }) => {
+export const StyledTextField = ({
+  value,
+  setValue,
+  placeholder,
+  ...params
+}) => {
   const classes = useStyles();
   return (
     <InputBase
+      {...params}
       className={classes.userField}
       value={value}
       onChange={(e) => setValue(e.target.value)}
