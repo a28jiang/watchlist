@@ -12,6 +12,7 @@
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "firebase": "^8.4.2",
+    "material-ui-image": "^3.3.2",
     "react": "^17.0.2",
     "react-app-env": "^1.2.3",
     "react-bootstrap": "^1.5.2",

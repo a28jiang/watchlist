@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { InputBase, Button } from "@material-ui/core";
+import StarIcon from "@material-ui/icons/Star";
+import StarBorderIcon from "@material-ui/icons/StarBorder";
+import StarHalfIcon from "@material-ui/icons/StarHalf";
 
 const useStyles = makeStyles((theme) => ({
   userField: {
@@ -62,4 +65,19 @@ export const StyledButton = ({ text, onClick, placeholder, outline }) => {
       </span>
     </Button>
   );
+};
+
+export const renderStars = (val) => {
+  const floorVal = Math.floor(val);
+  const halfVal = Math.round(val - floorVal);
+  var stars = [];
+  for (var i = 0; i < floorVal; i++) {
+    stars.push(<StarIcon style={{ width: "16px" }} />);
+  }
+  if (halfVal) stars.push(<StarIcon style={{ width: "16px" }} />);
+
+  for (var j = 0; j < 5 - (floorVal + halfVal); j++) {
+    stars.push(<StarBorderIcon style={{ width: "16px" }} />);
+  }
+  return stars;
 };

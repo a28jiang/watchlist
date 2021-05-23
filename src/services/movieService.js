@@ -38,12 +38,12 @@ const searchMovie = async (query) => {
   return [];
 };
 
-const searchTV = async (query) => {
+const searchMedia = async (query, type) => {
   if (query && query.length) {
     const params = { query };
     let resObj;
     try {
-      const response = await movieAPI.get("search/tv", { params });
+      const response = await movieAPI.get(`search/${type}`, { params });
       resObj = response.data.results;
       if (resObj) return resObj;
     } catch (error) {
@@ -53,4 +53,8 @@ const searchTV = async (query) => {
   return [];
 };
 
-export { getTrending, searchMovie, searchTV };
+const getImg = (path) => {
+  return `${IMG_URL}${path}`;
+};
+
+export { getTrending, searchMedia, getImg };
