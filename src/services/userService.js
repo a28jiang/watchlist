@@ -1,5 +1,6 @@
 import { auth, db } from "../firebase";
 import firebase from "firebase/app";
+import { UserContext } from "../context/UserContext";
 
 const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -24,4 +25,27 @@ const signInWithGoogle = async () => {
   });
 };
 
-export { handleLogout, signInWithGoogle };
+const storeCalendarId = async (uid, calendarId) => {
+  const usersRef = db.collection("users").doc(uid);
+
+  usersRef.get().then((doc) => {
+    if (doc.exists) {
+      usersRef.update({ calendarId: calendarId });
+
+      return true;
+    }
+    return false;
+  });
+};
+
+const getUserInfo = async (uid) => {
+  const usersRef = db.collection("users").doc(uid);
+
+  usersRef.get().then((doc) => {
+    if (doc.exists) {
+      console.log(doc.data());
+    }
+  });
+};
+
+export { handleLogout, signInWithGoogle, storeCalendarId, getUserInfo };

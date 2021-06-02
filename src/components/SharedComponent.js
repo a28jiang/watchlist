@@ -53,7 +53,7 @@ export const StyledTextField = ({
     />
   );
 };
-export const StyledButton = ({ text, onClick, placeholder, outline }) => {
+export const StyledButton = ({ text, onClick, outline }) => {
   const classes = useStyles();
   return (
     <Button
@@ -67,17 +67,19 @@ export const StyledButton = ({ text, onClick, placeholder, outline }) => {
   );
 };
 
-export const renderStars = (val) => {
-  const floorVal = Math.floor(val);
-  const halfVal = Math.round(val - floorVal);
+export const renderStars = (val, width) => {
+  const roundVal = (Math.round(val * 2) / 2).toFixed(1);
+  const floorVal = Math.floor(roundVal);
+
   var stars = [];
   for (var i = 0; i < floorVal; i++) {
-    stars.push(<StarIcon style={{ width: "16px" }} />);
+    stars.push(<StarIcon style={{ width: width ? width : "16px" }} />);
   }
-  if (halfVal) stars.push(<StarIcon style={{ width: "16px" }} />);
+  if (roundVal - floorVal === 0.5)
+    stars.push(<StarHalfIcon style={{ width: width ? width : "16px" }} />);
 
-  for (var j = 0; j < 5 - (floorVal + halfVal); j++) {
-    stars.push(<StarBorderIcon style={{ width: "16px" }} />);
+  for (var j = 0; j < 5 - Math.round(roundVal); j++) {
+    stars.push(<StarBorderIcon style={{ width: width ? width : "16px" }} />);
   }
   return stars;
 };

@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState, useContext } from "react";
 import { auth } from "../firebase";
+import { getUserInfo } from "../services/userService";
 
 const UserContext = createContext({ user: null });
 
@@ -9,7 +10,7 @@ const UserProvider = ({ children }) => {
   useEffect(() => {
     auth.onAuthStateChanged(async (userAuth) => {
       console.log("auth", userAuth);
-
+      getUserInfo(userAuth.uid);
       setUser(userAuth);
     });
   }, []);

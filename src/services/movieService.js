@@ -57,4 +57,20 @@ const getImg = (path) => {
   return `${IMG_URL}${path}`;
 };
 
-export { getTrending, searchMedia, getImg };
+const mediaDetail = async (id, type) => {
+  if (id && type) {
+    let resObj;
+    try {
+      const response = await movieAPI.get(`${type}/${id}`);
+      resObj = response.data;
+      if (resObj) return resObj;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  return {};
+};
+
+const addToWatchlist = async (id) => {};
+
+export { getTrending, searchMedia, getImg, mediaDetail, addToWatchlist };

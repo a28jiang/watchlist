@@ -31,9 +31,9 @@ const useStyles = makeStyles((theme) => ({
     margin: "2% 4%",
   },
   avatarStyle: {
-    height: "72px",
-    border: "3px solid #FFEDC9",
-    width: "72px",
+    height: "64px",
+    border: "2px solid #FFEDC9",
+    width: "64px",
   },
   toggle: {
     border: "none",
@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
   toggleIcon: {
     float: "right",
     marginTop: "-40px",
-    marginLeft: "80px",
+    marginLeft: "70px",
   },
 }));
 
