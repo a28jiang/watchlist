@@ -17,12 +17,13 @@ const movieAPI = axios.create({
 const getTrending = async () => {
   try {
     const response = await movieAPI.get("tv/popular");
-    return response.results;
+    return response.data;
   } catch (error) {
     console.error(error);
     return [];
   }
 };
+
 const searchMovie = async (query) => {
   if (query && query.length) {
     const params = { query };
@@ -53,6 +54,21 @@ const searchMedia = async (query, type) => {
   return [];
 };
 
+const getSimilar = async (queryId) => {
+  if (queryId) {
+    let resObj;
+    try {
+      const response = await movieAPI.get(`tv/${queryId}/similar`);
+      console.log(queryId, response);
+      resObj = response.data.results;
+      if (resObj) return resObj;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  return [];
+};
+
 const getImg = (path) => {
   return `${IMG_URL}${path}`;
 };
@@ -73,4 +89,11 @@ const mediaDetail = async (id, type) => {
 
 const addToWatchlist = async (id) => {};
 
-export { getTrending, searchMedia, getImg, mediaDetail, addToWatchlist };
+export {
+  getSimilar,
+  getTrending,
+  searchMedia,
+  getImg,
+  mediaDetail,
+  addToWatchlist,
+};

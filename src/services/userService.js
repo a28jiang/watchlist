@@ -1,6 +1,6 @@
 import { auth, db } from "../firebase";
 import firebase from "firebase/app";
-import { UserContext } from "../context/UserContext";
+import { mediaDetail } from "./movieService";
 
 const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -12,40 +12,116 @@ const handleLogout = async () => {
   }
 };
 
-const signInWithGoogle = async () => {
-  //Added the isNewUser property to firebase.auth.AdditionalUserInfo
-  await auth.signInWithPopup(provider).then((user) => {
-    const obj = user.user;
-    return db.collection("users").doc(obj.uid).set({
-      name: obj.displayName,
-      email: obj.email,
-      photo: obj.photoURL,
-      type: "basic",
+const signInWithGoogle = () => {
+  return new Promise((resolve, reject) => {
+    auth
+      .signInWithPopup(provider)
+      .then((user) => {
+        const obj = user.user;
+        const usersRef = db.collection("users").doc(obj.uid);
+
+        usersRef.get().then((res) => {
+          if (!res.exists) {
+            //create new user if doesn't exist
+            const setUser = {
+              id: obj.uid,
+              name: obj.displayName,
+              email: obj.email,
+              photo: obj.photoURL,
+            };
+            usersRef.set(setUser);
+          }
+          resolve(true);
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+        reject(error);
+      });
+  });
+};
+
+const storeShow = (show, uid) => {
+  return new Promise((resolve, reject) => {
+    if (!show.id) reject({ reason: "Show ID not provided" });
+
+    const showRef = db
+      .collection("users")
+      .doc(uid)
+      .collection("shows")
+      .doc(show.id.toString());
+
+    showRef
+      .get()
+      .then((res) => {
+        if (!res.exists) {
+          showRef.set({ status: show.status });
+          resolve(true);
+        }
+        reject({ reason: "Show already exists" });
+      })
+      .catch((error) => {
+        console.error(error);
+        reject(error);
+      });
+  });
+};
+
+const removeShow = (show, uid) => {
+  return new Promise((resolve, reject) => {
+    if (!show.id) reject({ reason: "Show ID not provided" });
+
+    const showRef = db
+      .collection("users")
+      .doc(uid)
+      .collection("shows")
+      .doc(show.id.toString());
+
+    showRef
+      .get()
+      .then((res) => {
+        if (res.exists) {
+          showRef.delete();
+          resolve(true);
+        }
+        reject({ reason: "Show does not exist" });
+      })
+      .catch((error) => {
+        console.error(error);
+        reject(error);
+      });
+  });
+};
+
+const getShows = async (uid, setShows) => {
+  db.collection("users")
+    .doc(uid)
+    .collection("shows")
+    .onSnapshot((doc) => {
+      const promises = doc.docs.map((show) => mediaDetail(show.id, "tv"));
+
+      Promise.all(promises).then((val) => {
+        setShows(val);
+      });
     });
-  });
 };
 
-const storeCalendarId = async (uid, calendarId) => {
-  const usersRef = db.collection("users").doc(uid);
-
-  usersRef.get().then((doc) => {
-    if (doc.exists) {
-      usersRef.update({ calendarId: calendarId });
-
-      return true;
-    }
-    return false;
-  });
+const getUser = async (uid, setUser) => {
+  if (uid) {
+    db.collection("users")
+      .doc(uid)
+      .onSnapshot((doc) => {
+        console.log("setting user", doc.data());
+        setUser(doc.data());
+      });
+  }
 };
 
-const getUserInfo = async (uid) => {
-  const usersRef = db.collection("users").doc(uid);
-
-  usersRef.get().then((doc) => {
-    if (doc.exists) {
-      console.log(doc.data());
-    }
-  });
+export {
+  handleLogout,
+  signInWithGoogle,
+  getUser,
+  storeShow,
+  removeShow,
+  getShows,
 };
-
-export { handleLogout, signInWithGoogle, storeCalendarId, getUserInfo };

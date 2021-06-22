@@ -1,23 +1,22 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
+import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import {
-  Row,
-  Col,
   Dropdown,
   DropdownMenu,
   DropdownItem,
   DropdownToggle,
 } from "reactstrap";
 import { UserContext } from "../context/UserContext";
-import { Button, Avatar } from "@material-ui/core";
+import { Button, Avatar, Grid } from "@material-ui/core";
 import { handleLogout, signInWithGoogle } from "../services/userService";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 
 const useStyles = makeStyles((theme) => ({
   navbar: {
-    margin: 0,
-    flexDirection: "column",
-    padding: "8px 16px",
+    margin: "auto",
+    padding: "16px",
+    width: "80%",
   },
   button: {
     "& span": {
@@ -25,10 +24,6 @@ const useStyles = makeStyles((theme) => ({
       paddingLeft: "12px",
       fontWeight: "bold",
     },
-  },
-  buttonBar: {
-    alignSelf: "flex-end",
-    margin: "2% 4%",
   },
   avatarStyle: {
     height: "64px",
@@ -44,6 +39,13 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "-40px",
     marginLeft: "70px",
   },
+  header: {
+    fontFamily: "typeface-playfair-display",
+    fontWeight: "bold",
+    color: "#FFEDC9",
+    cursor: "pointer",
+    fontSize: "3vw",
+  },
 }));
 
 const Toggle = ({ open, setOpen, options, children }) => {
@@ -52,10 +54,7 @@ const Toggle = ({ open, setOpen, options, children }) => {
     <Dropdown isOpen={open} toggle={() => setOpen(!open)}>
       <DropdownToggle className={classes.toggle}>
         {children}
-        <ArrowDropDownIcon
-          className={classes.toggleIcon}
-          iconStyle={{ width: 60, height: 60 }}
-        />
+        <ArrowDropDownIcon className={classes.toggleIcon} />
       </DropdownToggle>
       <DropdownMenu>
         {options.map((item) => (
@@ -70,18 +69,30 @@ const Toggle = ({ open, setOpen, options, children }) => {
 
 const userOptions = [{ name: "Logout", callback: () => handleLogout() }];
 
-export const Navbar = () => {
+export const Navbar = ({ landing }) => {
   const classes = useStyles();
-  const user = useContext(UserContext);
+  const history = useHistory();
+  const { user } = useContext(UserContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // useEffect(() => {
-  //   console.log("appuser", user);
-  // }, [user]);
-
+  const signIn = () => {
+    signInWithGoogle().then((val) => {
+      console.log(val);
+      if (val) {
+        history.push("/dashboard");
+      }
+    });
+  };
   return (
-    <Row className={classes.navbar}>
-      <div className={classes.buttonBar}>
+    <Grid container className={classes.navbar} xs={12}>
+      <Grid item xs={6}>
+        {history.location.pathname !== "/" && (
+          <span className={classes.header}>
+            watch<span style={{ color: "#FFCD6B" }}>list.</span>
+          </span>
+        )}
+      </Grid>
+      <Grid container item justify="flex-end" xs={6}>
         {user ? (
           <Toggle
             open={dropdownOpen}
@@ -89,32 +100,26 @@ export const Navbar = () => {
             options={userOptions}
           >
             <Avatar
-              alt={user.displayName}
-              src={user.photoURL}
+              alt={user.name}
+              src={user.photo}
               className={classes.avatarStyle}
             />
           </Toggle>
         ) : (
           <>
             <Button className={classes.button}>
-              <span
-                style={{ color: "#FFCD6B" }}
-                onClick={() => signInWithGoogle()}
-              >
+              <span style={{ color: "#FFCD6B" }} onClick={() => signIn()}>
                 LOGIN
               </span>
             </Button>
             <Button className={classes.button}>
-              <span
-                style={{ color: "#FFEDC9" }}
-                onClick={() => signInWithGoogle()}
-              >
+              <span style={{ color: "#FFEDC9" }} onClick={() => signIn()}>
                 SIGN UP
               </span>
             </Button>
           </>
         )}
-      </div>
-    </Row>
+      </Grid>
+    </Grid>
   );
 };

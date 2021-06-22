@@ -1,21 +1,37 @@
-import React, { createContext, useEffect, useState, useContext } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { auth } from "../firebase";
-import { getUserInfo } from "../services/userService";
+import { getUser, getShows } from "../services/userService";
 
-const UserContext = createContext({ user: null });
+const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(0);
+  const [userAuth, setUserAuth] = useState(null);
+  const [user, setUser] = useState(null);
+  const [shows, setShows] = useState([]);
+
+  useEffect(() => {
+    if (userAuth && userAuth.uid) {
+      getUser(userAuth.uid, setUser); // listen for user updates
+      getShows(userAuth.uid, setShows); // listen for show updates
+    }
+  }, [userAuth]);
 
   useEffect(() => {
     auth.onAuthStateChanged(async (userAuth) => {
-      console.log("auth", userAuth);
-      getUserInfo(userAuth.uid);
-      setUser(userAuth);
+      if (userAuth) {
+        setUserAuth(userAuth);
+      } else {
+        setUserAuth(null);
+        setUser(null);
+      }
     });
   }, []);
 
-  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={{ user, shows }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 
 export { UserProvider, UserContext };

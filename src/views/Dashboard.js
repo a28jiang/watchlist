@@ -1,29 +1,28 @@
 import React, { useEffect, useState, useContext } from "react";
 import { UserContext } from "../context/UserContext";
-import { Row, Col } from "reactstrap";
+import { Row } from "reactstrap";
 import { makeStyles } from "@material-ui/core/styles";
 import { useHistory } from "react-router-dom";
-import {
-  Button,
-  CircularProgress,
-  Paper,
-  TextField,
-  Grid,
-  Modal,
-} from "@material-ui/core";
-import Image from "material-ui-image";
+import { TextField, Grid } from "@material-ui/core";
 import SearchIcon from "@material-ui/icons/Search";
-import Autocomplete from "@material-ui/lab/Autocomplete";
 import {
   getTrending,
   searchMedia,
   getImg,
   mediaDetail,
-  addToWatchlist,
 } from "../services/movieService";
-import { GoogleAuth } from "../services/gapiService";
-import { renderStars, StyledButton } from "../components/SharedComponent";
-import useAsyncEffect from "use-async-effect";
+
+import { MediaDetail, MediaCard } from "../components/SharedComponent";
+import { Schedule } from "../components/Schedule";
+import MuiAlert from "@material-ui/lab/Alert";
+import { ReactComponent as Background } from "../assets/design1.svg";
+
+const getColors = require("get-image-colors");
+
+const colourOptions = {
+  count: 1,
+  type: "image/png",
+};
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -69,119 +68,12 @@ const useStyles = makeStyles((theme) => ({
     width: "48px",
     borderRadius: "50%",
   },
+  buttonText: {
+    fontSize: "20px",
+    fontWeight: "bold",
+    color: "#FFCD6B",
+  },
 }));
-
-const AddMediaModal = ({ open, setOpen, option }) => {
-  return (
-    <Modal open={open}>
-      <Paper>
-        <Grid container spacing={3} xs={3}>
-          <Grid item>
-            <Image
-              style={{
-                height: "20vw",
-                width: "100%",
-              }}
-              src={getImg(option.poster_path)}
-              alt={option.name}
-            />
-          </Grid>
-          <Grid item container xs={9}>
-            <Grid item>
-              <h2>{option.name}</h2>
-            </Grid>
-            <Grid item>
-              <span style={{ marginRight: "16px" }}>
-                {option.first_air_date || "N/A"}
-              </span>
-              {renderStars(option.vote_average / 2)}
-            </Grid>
-            <Grid item>{option.overview}</Grid>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Modal>
-  );
-};
-
-const renderDate = (detail) => {
-  if (detail) {
-    const first = detail.first_air_date;
-    const last = detail.last_air_date;
-    if ((first && detail.status !== "Ended") || (first && !last))
-      return `${first.substring(0, 4)} -`;
-    else if (first && last)
-      return `${first.substring(0, 4)} - ${last.substring(0, 4)}`;
-  } else return "N/A";
-};
-
-const MediaCard = ({ option }) => {
-  const [toolTip, setToolTip] = useState(false);
-
-  // mediaDetail(option.id, "tv").then((val) => {
-  //   console.log("val", val);
-  //   setDetail(val);
-  // });
-
-  // useAsyncEffect(async (isMounted) => {
-  //   const response = await mediaDetail(option.id, "tv");
-  //   if (!isMounted()) return;
-  //   setDetail(response);
-  // }, []);
-
-  return (
-    <Grid
-      onMouseEnter={() => setToolTip(true)}
-      onMouseLeave={() => setToolTip(false)}
-      item
-      xs={3}
-    >
-      <Image
-        imageStyle={{ borderRadius: "12px" }}
-        style={{
-          minHeight: "40vh",
-          objectFit: "cover",
-          pointer: "cursor",
-          borderRadius: "12px",
-        }}
-        src={getImg(option.poster_path)}
-        alt={option.name}
-      />
-      <div
-        style={{
-          display: !toolTip && "none",
-          relative: "-10vh",
-          position: "relative",
-          borderBottomLeftRadius: "12px",
-          borderBottomRightRadius: "12px",
-          top: "-15vh",
-          height: "15vh",
-          background: "linear-gradient(rgba(0,0,0,0),rgba(0,0,0,1)",
-        }}
-      >
-        <div
-          style={{
-            float: "right",
-            color: "#FFEDC9",
-            position: "relative",
-            top: "7.5vh",
-            padding: "0 16px",
-            width: "100%",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            textAlign: "right",
-          }}
-        >
-          <span style={{ fontWeight: "bold" }}>{option.name}</span>
-          <br />
-          <span style={{ marginRight: "12px" }}>{renderDate(option)}</span>
-          {renderStars(option.vote_average / 2)}
-        </div>
-      </div>
-    </Grid>
-  );
-};
 
 const sortOptions = (options, property) => {
   //sort by popularity and image availability
@@ -193,28 +85,74 @@ const sortOptions = (options, property) => {
 };
 
 const Dashboard = () => {
-  const history = useHistory();
   const classes = useStyles();
   const [options, setOptions] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [value, setValue] = useState("");
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [mediaType, setMediaType] = useState("tv");
-  const { uid } = useContext(UserContext);
+  const [description, setDescription] = useState("Trending Now");
+  const [accent, setAccent] = useState("rgba(255,237,201,0.2)");
+  const [error, setError] = useState(false);
+  // const [mediaType, setMediaType] = useState("tv");
+  const { user } = useContext(UserContext);
+
+  const switchAccent = (option) => {
+    if (option) {
+      getColors(getImg(option.poster_path), colourOptions).then((colors) => {
+        const rgb = colors[0]._rgb;
+        rgb.pop();
+        setAccent(`rgba(${rgb.join(",")},0.3)`);
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!options.length) {
+      getTrending().then((val) => {
+        const promises = val.results
+          .slice(0, 4)
+          .map((opt) => mediaDetail(opt.id, "tv"));
+
+        if (promises) {
+          Promise.all(promises).then((val) => {
+            console.log(val);
+            setOptions(val);
+          });
+        } else {
+          setError(true);
+          console.log("error", true);
+          setTimeout(() => {
+            setError(false);
+            console.log("error", false);
+          }, 2000);
+        }
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (value) {
       const delayDebounceFn = setTimeout(() => {
         if (value.length >= 3)
-          searchMedia(value, mediaType).then((val) => {
+          searchMedia(value, "tv").then((val) => {
             const promises = sortOptions(val, "popularity")
               .slice(0, 4)
               .map((opt) => mediaDetail(opt.id, "tv"));
 
-            Promise.all(promises).then((val) => {
-              console.log(val);
-              setOptions(val);
-            });
+            if (promises.length) {
+              Promise.all(promises).then((val) => {
+                console.log(val);
+                switchAccent(val[0]);
+                setOptions(val);
+              });
+            } else {
+              setDescription(`No results for: ${value}`);
+              setError(true);
+              console.log("error", true);
+              setTimeout(() => {
+                setError(false);
+                console.log("error", false);
+              }, 2000);
+            }
           });
       }, 750);
 
@@ -223,77 +161,114 @@ const Dashboard = () => {
   }, [value]);
 
   return (
-    <div style={{ height: "100vh" }}>
-      <Row className={classes.centered}>
-        <GoogleAuth />
-        <TextField
-          style={{ width: "80%" }}
-          value={value}
-          onChange={(e, val) => {
-            setValue(e.target.value);
-          }}
-          InputProps={{
-            disableUnderline: true,
-            endAdornment: <SearchIcon style={{ cursor: "pointer" }} />,
-            style: {
-              fontSize: "18px",
-              padding: "12px 16px",
-              backgroundColor: "white",
-              borderRadius: "32px",
-            },
-          }}
-          placeholder="Find a series (e.g. Attack on Titan)"
-        />
+    <>
+      <div style={{ height: "100vh", zIndex: 2 }}>
+        {error && (
+          <MuiAlert
+            severity="error"
+            style={{
+              width: "50vw",
+              position: "absolute",
+              top: "5vh",
+              left: "25vw",
+              zIndex: 999,
+            }}
+          >
+            Sorry there was an error while fetching your shows
+          </MuiAlert>
+        )}
+        <Row className={classes.centered} style={{ margin: 0 }}>
+          <TextField
+            style={{ width: "80%" }}
+            value={value}
+            onChange={(e, val) => {
+              if (selectedOption) setSelectedOption(null);
+              setValue(e.target.value);
+              setDescription(`Search results for: ${e.target.value}`);
+            }}
+            InputProps={{
+              disableUnderline: true,
+              endAdornment: <SearchIcon style={{ cursor: "pointer" }} />,
+              style: {
+                fontSize: "18px",
+                padding: "12px 16px",
+                backgroundColor: "white",
+                borderRadius: "32px",
+              },
+            }}
+            placeholder="Find a series (e.g. Attack on Titan)"
+          />
 
-        <Grid style={{ width: "80%", marginTop: "36px" }} container spacing={3}>
-          {options.slice(0, 4).map((option, key) => (
-            <MediaCard key={key} option={option} />
-          ))}
-
-          {options.length === 1 && (
+          <Grid
+            style={{
+              width: "80%",
+              zIndex: 2,
+              marginTop: "36px",
+              padding: "24px",
+              paddingBottom: "32px",
+              borderRadius: "24px",
+              backgroundImage: `linear-gradient(#211D1C,${accent})`,
+            }}
+            container
+          >
             <Grid
-              container
-              direction="column"
+              style={{
+                paddingBottom: "12px",
+              }}
               item
-              spacing={3}
-              xs={9}
-              style={{ color: "white", paddingLeft: "32px" }}
+              container
+              justify={selectedOption ? "flex-end" : "flex-start"}
             >
-              <Grid item container align="center">
+              {selectedOption ? (
                 <span
-                  style={{
-                    color: "#FFCD6B",
-                    fontWeight: 700,
-                    fontSize: "36px",
-                  }}
-                >
-                  {options[0].name}
-                </span>
-              </Grid>
-              <Grid item style={{ marginTop: "-12px" }}>
-                <StyledButton
-                  text="Add to Watchlist"
+                  style={{ paddingRight: "12px", cursor: "pointer", zIndex: 2 }}
+                  className={classes.buttonText}
                   onClick={() => {
-                    console.log("hi");
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: "24px",
-                    color: "#FFEDC9",
-                    marginLeft: "24px",
+                    setSelectedOption(null);
                   }}
                 >
-                  {renderDate(options[0])}{" "}
-                  {renderStars(options[0].vote_average / 2, "24px")}
+                  Go Back
                 </span>
-              </Grid>
-              <Grid item>{options[0].overview}</Grid>
+              ) : (
+                <span
+                  style={{ color: "#FFEDC9", fontWeight: 500 }}
+                  className={classes.buttonText}
+                >
+                  {description}
+                </span>
+              )}
             </Grid>
-          )}
-        </Grid>
-      </Row>
-    </div>
+            <Grid item container spacing={3}>
+              {selectedOption ? (
+                <MediaDetail option={selectedOption} user={user} />
+              ) : (
+                options.slice(0, 4).map((option) => {
+                  return (
+                    <MediaCard
+                      key={option.id}
+                      option={option}
+                      setSelectedOption={() => {
+                        setSelectedOption(option);
+                        switchAccent(option);
+                      }}
+                    />
+                  );
+                })
+              )}
+            </Grid>
+          </Grid>
+          <Grid
+            style={{ marginTop: "36px" }}
+            container
+            justify="center"
+            xs={12}
+          >
+            <Schedule />
+          </Grid>
+        </Row>
+      </div>
+      <Background style={{ width: "100%", position: "sticky", bottom: 0 }} />
+    </>
   );
 };
 
