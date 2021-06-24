@@ -5,6 +5,7 @@ import { getUser, getShows } from "../services/userService";
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
+  const [loading, setLoading] = useState(true);
   const [userAuth, setUserAuth] = useState(null);
   const [user, setUser] = useState(null);
   const [shows, setShows] = useState([]);
@@ -24,11 +25,12 @@ const UserProvider = ({ children }) => {
         setUserAuth(null);
         setUser(null);
       }
+      setLoading(false);
     });
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, shows }}>
+    <UserContext.Provider value={{ userAuth, user, shows, loading }}>
       {children}
     </UserContext.Provider>
   );

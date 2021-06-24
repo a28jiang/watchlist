@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { UserProvider } from "./context/UserContext";
 import { Navbar } from "./components/Navbar";
@@ -11,7 +11,6 @@ export default function App() {
       <div
         style={{
           backgroundImage: "linear-gradient(#544E4A, #000000)",
-          zIndex: -2,
         }}
       >
         <UserProvider>

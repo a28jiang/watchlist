@@ -101,6 +101,7 @@ const getShows = async (uid, setShows) => {
       const promises = doc.docs.map((show) => mediaDetail(show.id, "tv"));
 
       Promise.all(promises).then((val) => {
+        console.log("setting", val);
         setShows(val);
       });
     });

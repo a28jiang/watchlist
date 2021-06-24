@@ -24,20 +24,20 @@ const getTrending = async () => {
   }
 };
 
-const searchMovie = async (query) => {
-  if (query && query.length) {
-    const params = { query };
-    let resObj;
-    try {
-      const response = await movieAPI.get("search/movie", { params });
-      resObj = response.data.results;
-      if (resObj) return resObj;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  return [];
-};
+// const searchMovie = async (query) => {
+//   if (query && query.length) {
+//     const params = { query };
+//     let resObj;
+//     try {
+//       const response = await movieAPI.get("search/movie", { params });
+//       resObj = response.data.results;
+//       if (resObj) return resObj;
+//     } catch (error) {
+//       console.error(error);
+//     }
+//   }
+//   return [];
+// };
 
 const searchMedia = async (query, type) => {
   if (query && query.length) {

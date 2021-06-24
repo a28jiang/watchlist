@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Landing = () => {
   const classes = useStyles();
-  const user = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const history = useHistory();
 
   return (
@@ -74,7 +74,11 @@ const Landing = () => {
             <Grid item style={{ marginTop: "10vh" }}>
               <StyledButton
                 onClick={() => {
-                  user ? history.push("/dashboard") : signInWithGoogle();
+                  user
+                    ? history.push("/dashboard")
+                    : signInWithGoogle().then(
+                        (loggedIn) => loggedIn && history.push("/dashboard")
+                      );
                 }}
                 text="LET'S GO"
               />

@@ -5,9 +5,9 @@ import { StarBorder, Star, StarHalf, AddAlert } from "@material-ui/icons";
 import { UserContext } from "../context/UserContext";
 import Image from "material-ui-image";
 import { getImg } from "../services/movieService";
-// import { addNotification } from "../services/notificationService";
+import lost from "../assets/lost.png";
 import { storeShow, removeShow } from "../services/userService";
-import moment from "moment";
+import { dateFromNow } from "../utils/dateUtil";
 
 const useStyles = makeStyles((theme) => ({
   userField: {
@@ -32,7 +32,10 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "24px",
     cursor: "pointer",
   },
-  iconStyle: {},
+  emptyText: {
+    fontSize: "18px",
+    color: "gray",
+  },
 }));
 
 export const TextButton = ({ text, style, onClick, ...props }) => {
@@ -94,13 +97,25 @@ export const renderStars = (val, width) => {
 
   var stars = [];
   for (var i = 0; i < floorVal; i++) {
-    stars.push(<Star style={{ width: width ? width : "16px" }} />);
+    stars.push(
+      <Star key={`fullstar${i}`} style={{ width: width ? width : "16px" }} />
+    );
   }
   if (roundVal - floorVal === 0.5)
-    stars.push(<StarHalf style={{ width: width ? width : "16px" }} />);
+    stars.push(
+      <StarHalf
+        key={`halfstar${i}`}
+        style={{ width: width ? width : "16px" }}
+      />
+    );
 
   for (var j = 0; j < 5 - Math.round(roundVal); j++) {
-    stars.push(<StarBorder style={{ width: width ? width : "16px" }} />);
+    stars.push(
+      <StarBorder
+        key={`nostar${i}`}
+        style={{ width: width ? width : "16px" }}
+      />
+    );
   }
   return stars;
 };
@@ -158,6 +173,7 @@ export const MediaCard = ({ option, setSelectedOption }) => {
             }}
           >
             <span style={{ fontWeight: "bold" }}>{option.name}</span>
+            <span style={{}}>{` - ${option.number_of_episodes} ep`}</span>
             <br />
             <span style={{ marginRight: "12px" }}>{renderDate(option)}</span>
             {renderStars(option.vote_average / 2)}
@@ -203,7 +219,14 @@ export const MediaDetail = ({ option, user }) => {
           >
             {option.name}
           </span>
-          {option.next_episode_to_air && (
+          <span
+            style={{
+              color: "#FFEDC9",
+              fontSize: "24px",
+              margin: "auto 16px",
+            }}
+          >{`${option.number_of_episodes} episodes`}</span>
+          {option.next_episode_to_air && false && (
             <AddAlert
               onClick={(option) => console.log("PLACEHOLDER NOTIF")}
               style={{
@@ -241,15 +264,13 @@ export const MediaDetail = ({ option, user }) => {
             }}
           >
             {option.next_episode_to_air &&
-              `📺 Episode ${
+              `Episode ${
                 option.next_episode_to_air.episode_number
-              } airing in ${moment(
-                option.next_episode_to_air.air_date
-              ).fromNow()}`}
+              } airing ${dateFromNow(option.next_episode_to_air.air_date)}`}
           </span>
         </Grid>
         <Grid item>
-          <span style={{ color: "#c4c4c4", fontSize: "18px" }}>
+          <span style={{ color: "#c4c4c4", fontSize: "1.5vw" }}>
             {option.overview || "Sorry! Unable to fetch show summary."}
           </span>
         </Grid>
@@ -281,7 +302,14 @@ export const ModalDetail = ({ option, user }) => {
           >
             {option.name}
           </span>
-          {option.next_episode_to_air && (
+          <span
+            style={{
+              color: "#FFEDC9",
+              fontSize: "1.25rem",
+              margin: "auto 16px",
+            }}
+          >{`${option.number_of_episodes} episodes`}</span>
+          {option.next_episode_to_air && false && (
             <AddAlert
               onClick={(option) => console.log("PLACEHOLDER NOTIF")}
               style={{
@@ -295,7 +323,7 @@ export const ModalDetail = ({ option, user }) => {
           )}
           <span
             style={{
-              margin: "auto 12px",
+              margin: "auto 8px",
               fontSize: "1.25rem",
               color: "#FFEDC9",
             }}
@@ -320,11 +348,9 @@ export const ModalDetail = ({ option, user }) => {
             }}
           >
             {option.next_episode_to_air &&
-              `📺 Episode ${
+              `Episode ${
                 option.next_episode_to_air.episode_number
-              } airing in ${moment(
-                option.next_episode_to_air.air_date
-              ).fromNow()}`}
+              } airing ${dateFromNow(option.next_episode_to_air.air_date)}`}
           </span>
         </Grid>
         <Grid item style={{ marginTop: "16px" }}>
@@ -337,3 +363,24 @@ export const ModalDetail = ({ option, user }) => {
     </Grid>
   );
 };
+
+const EmptyState = () => {
+  const classes = useStyles();
+  return (
+    <Grid container justify="center" align="center" spacing={3}>
+      <Grid item xs={12}>
+        <span className={classes.emptyText}>
+          Your shows and movies will appear here
+          <br />
+          once you add them to your watchlist!
+        </span>
+      </Grid>
+      <Grid />
+      <div>
+        <img alt="lost" src={lost} style={{ width: "25rem" }} />
+      </div>
+    </Grid>
+  );
+};
+
+export { EmptyState };

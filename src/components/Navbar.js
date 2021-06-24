@@ -58,7 +58,7 @@ const Toggle = ({ open, setOpen, options, children }) => {
       </DropdownToggle>
       <DropdownMenu>
         {options.map((item) => (
-          <DropdownItem onClick={() => item.callback()}>
+          <DropdownItem key={item.name} onClick={() => item.callback()}>
             {item.name}
           </DropdownItem>
         ))}
@@ -69,7 +69,7 @@ const Toggle = ({ open, setOpen, options, children }) => {
 
 const userOptions = [{ name: "Logout", callback: () => handleLogout() }];
 
-export const Navbar = ({ landing }) => {
+export const Navbar = () => {
   const classes = useStyles();
   const history = useHistory();
   const { user } = useContext(UserContext);

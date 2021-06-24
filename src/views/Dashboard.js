@@ -86,6 +86,7 @@ const sortOptions = (options, property) => {
 
 const Dashboard = () => {
   const classes = useStyles();
+  const history = useHistory();
   const [options, setOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [value, setValue] = useState("");
@@ -93,7 +94,7 @@ const Dashboard = () => {
   const [accent, setAccent] = useState("rgba(255,237,201,0.2)");
   const [error, setError] = useState(false);
   // const [mediaType, setMediaType] = useState("tv");
-  const { user } = useContext(UserContext);
+  const { user, userAuth, loading } = useContext(UserContext);
 
   const switchAccent = (option) => {
     if (option) {
@@ -106,28 +107,32 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (!options.length) {
-      getTrending().then((val) => {
-        const promises = val.results
-          .slice(0, 4)
-          .map((opt) => mediaDetail(opt.id, "tv"));
+    getTrending().then((val) => {
+      const promises = val.results
+        .slice(0, 4)
+        .map((opt) => mediaDetail(opt.id, "tv"));
 
-        if (promises) {
-          Promise.all(promises).then((val) => {
-            console.log(val);
-            setOptions(val);
-          });
-        } else {
-          setError(true);
-          console.log("error", true);
-          setTimeout(() => {
-            setError(false);
-            console.log("error", false);
-          }, 2000);
-        }
-      });
-    }
+      if (promises) {
+        Promise.all(promises).then((val) => {
+          console.log(val);
+          setOptions(val);
+        });
+      } else {
+        setError(true);
+        console.log("error", true);
+        setTimeout(() => {
+          setError(false);
+          console.log("error", false);
+        }, 2000);
+      }
+    });
   }, []);
+
+  useEffect(() => {
+    if (!userAuth && !loading) {
+      history.push("/");
+    }
+  }, [userAuth, loading, history]);
 
   useEffect(() => {
     if (value) {
@@ -140,7 +145,6 @@ const Dashboard = () => {
 
             if (promises.length) {
               Promise.all(promises).then((val) => {
-                console.log(val);
                 switchAccent(val[0]);
                 setOptions(val);
               });
@@ -162,7 +166,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div style={{ height: "100vh", zIndex: 2 }}>
+      <div style={{ zIndex: 2 }}>
         {error && (
           <MuiAlert
             severity="error"
