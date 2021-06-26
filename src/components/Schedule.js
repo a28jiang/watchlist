@@ -1,15 +1,6 @@
 import React, { useState, useContext, useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import {
-  Grid,
-  Modal,
-  Table,
-  TableHead,
-  TableRow,
-  TableBody,
-  TableContainer,
-  TableCell,
-} from "@material-ui/core";
+import { Grid, Modal } from "@material-ui/core";
 import { getImg } from "../services/movieService";
 import networkImg from "../assets/watchlist_network.png";
 import { UserContext } from "../context/UserContext";
@@ -18,7 +9,7 @@ import {
   ModalDetail,
   EmptyState,
 } from "../components/SharedComponent";
-// import Popover from "@material-ui/core/Popover";
+import { DataTable } from "./Table";
 import {
   List,
   Schedule as ScheduleIcon,
@@ -99,12 +90,6 @@ const TIME_OPTIONS = {
   },
 };
 
-const COLUMNS = [
-  { field: "name", headerName: "Name" },
-  { field: "number_of_episodes", headerName: "Episodes" },
-  { field: "airDate", headerName: "Next Episode Airing" },
-  { field: "status", headerName: "Status" },
-];
 const ShowPortrait = ({ show, position, user }) => {
   const classes = useStyles({ position });
   const [open, setOpen] = useState(false);
@@ -156,35 +141,6 @@ const TimeLineBar = () => (
     }}
   />
 );
-
-const DataTable = ({ shows }) => {
-  return (
-    <TableContainer>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {COLUMNS.map((col) => (
-              <TableCell style={{ color: "#FFEDC9" }}>
-                {col.headerName}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {shows.flat().map((row) => (
-            <TableRow>
-              {COLUMNS.map((col) => (
-                <TableCell style={{ color: "#FFEDC9" }}>
-                  {row[col.field]}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-};
 
 const Schedule = () => {
   const { user } = useContext(UserContext);
