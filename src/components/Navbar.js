@@ -67,8 +67,6 @@ const Toggle = ({ open, setOpen, options, children }) => {
   );
 };
 
-const userOptions = [{ name: "Logout", callback: () => handleLogout() }];
-
 export const Navbar = () => {
   const classes = useStyles();
   const history = useHistory();
@@ -83,6 +81,12 @@ export const Navbar = () => {
       }
     });
   };
+
+  const userOptions = [
+    { name: "Logout", callback: () => handleLogout() },
+    { name: "Dashboard", callback: () => history.push("/dashboard") },
+  ];
+
   return (
     <Grid container className={classes.navbar} xs={12}>
       <Grid item xs={6}>

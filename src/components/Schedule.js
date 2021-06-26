@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Modal } from "@material-ui/core";
 import { getImg } from "../services/movieService";
@@ -15,6 +15,7 @@ import {
   Schedule as ScheduleIcon,
   PlayCircleFilled,
 } from "@material-ui/icons";
+import { getTrending, mediaDetail } from "../services/movieService";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -142,6 +143,63 @@ const TimeLineBar = () => (
   />
 );
 
+const formatData = (shows) => {
+  return shows.map((show) => {
+    return {
+      ...show,
+      status: show.next_episode_to_air ? "Ongoing" : show.status,
+      airDate: show.next_episode_to_air
+        ? show.next_episode_to_air.air_date
+        : "N/A",
+    };
+  });
+};
+
+const formatScheduleData = (shows, timeOpt) => {
+  if (!shows.length) return;
+  const finalData = [
+    {
+      logo: networkImg,
+      name: "Other",
+      timeline: true,
+      shows: [],
+    },
+    {
+      text: "Upcoming",
+      name: "noNext",
+      shows: [],
+    },
+    {
+      text: "Completed Series",
+      name: "completed",
+      shows: [],
+    },
+  ];
+
+  shows.forEach((show) => {
+    if (show.status === "Ongoing") {
+      const position =
+        (Date.parse(show.next_episode_to_air.air_date) - Date.now()) /
+        TIME_OPTIONS[timeOpt].val;
+
+      if (position > 0 && position * 60 + 25 < 85) {
+        finalData[0].shows.push({
+          position,
+          ...show,
+        });
+      } else {
+        finalData[1].shows.push(show);
+      }
+    } else if (show.status === "Returning Series") {
+      finalData[1].shows.push(show);
+    } else {
+      finalData[2].shows.push(show);
+    }
+  });
+
+  return finalData;
+};
+
 const Schedule = () => {
   const { user } = useContext(UserContext);
   const classes = useStyles();
@@ -150,64 +208,8 @@ const Schedule = () => {
   const containerRef = useRef(null);
   const [scheduleView, setScheduleView] = useState(true);
 
-  const formatScheduleData = (shows) => {
-    if (!shows.length) return;
-    const finalData = [
-      {
-        logo: networkImg,
-        name: "Other",
-        timeline: true,
-        shows: [],
-      },
-      {
-        text: "Upcoming",
-        name: "noNext",
-        shows: [],
-      },
-      {
-        text: "Completed Series",
-        name: "completed",
-        shows: [],
-      },
-    ];
-
-    shows.forEach((show) => {
-      if (show.status === "Ongoing") {
-        const position =
-          (Date.parse(show.next_episode_to_air.air_date) - Date.now()) /
-          TIME_OPTIONS[timeOpt].val;
-
-        if (position > 0 && position * 60 + 25 < 85) {
-          finalData[0].shows.push({
-            position,
-            ...show,
-          });
-        } else {
-          finalData[1].shows.push(show);
-        }
-      } else if (show.status === "Returning Series") {
-        finalData[1].shows.push(show);
-      } else {
-        finalData[2].shows.push(show);
-      }
-    });
-
-    return finalData;
-  };
-
-  const formatData = (shows) => {
-    return shows.map((show) => {
-      return {
-        ...show,
-        status: show.next_episode_to_air ? "Ongoing" : show.status,
-        airDate: show.next_episode_to_air
-          ? show.next_episode_to_air.air_date
-          : "N/A",
-      };
-    });
-  };
   const tableData = formatData(shows) || [];
-  const scheduleData = formatScheduleData(tableData) || [];
+  const scheduleData = formatScheduleData(tableData, timeOpt) || [];
 
   if (shows.length)
     return (
@@ -358,4 +360,156 @@ const Schedule = () => {
     );
 };
 
-export { Schedule };
+const DemoSchedule = () => {
+  const { user } = useContext(UserContext);
+  const classes = useStyles();
+  const [timeOpt, setTimeOpt] = useState("1W");
+  const [shows, setShows] = useState([]);
+
+  useEffect(() => {
+    getTrending().then((val) => {
+      const promises = val.results
+        .slice(0, 10)
+        .map((opt) => mediaDetail(opt.id, "tv"));
+
+      if (promises) {
+        Promise.all(promises).then((val) => {
+          console.log(val);
+          setShows(val);
+        });
+      }
+    });
+  }, []);
+
+  const containerRef = useRef(null);
+
+  const scheduleData = formatScheduleData(formatData(shows), timeOpt) || [];
+
+  if (shows.length)
+    return (
+      <>
+        <Grid
+          style={{ width: "80%", margin: "0 auto 36px auto" }}
+          container
+          item
+        >
+          <Grid container item justify="flex-end">
+            {Object.keys(TIME_OPTIONS).map((key) => (
+              <TextButton
+                style={{
+                  padding: "12px",
+                  color: key === timeOpt ? "#FFEDC9" : "#FFCD6B",
+                }}
+                text={key}
+                onClick={() => setTimeOpt(key)}
+              />
+            ))}
+          </Grid>
+        </Grid>
+        <Grid
+          className={classes.container}
+          container
+          item
+          spacing={4}
+          ref={containerRef}
+        >
+          <div style={{ width: "100%", marginBottom: "24px" }}>
+            <div style={{ width: "85%", float: "right" }}>
+              {TIME_OPTIONS[timeOpt].labels.map((label, index) => (
+                <div
+                  key={index}
+                  style={{
+                    width: `${100 / TIME_OPTIONS[timeOpt].labels.length}%`,
+                    display: "inline-block",
+                    textAlign: "center",
+                  }}
+                >
+                  {label === "now" ? (
+                    <PlayCircleFilled style={{ color: "white" }} />
+                  ) : (
+                    <>
+                      <span style={{ color: "white", fontWeight: "bold" }}>
+                        {label}
+                      </span>
+                      <div
+                        style={{
+                          margin: "12px auto",
+                          marginBottom: `-80px`,
+                          position: "relative",
+                          backgroundColor: "#696969",
+                          height: `75px`,
+                          width: "1px",
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          {scheduleData.slice(0, 2).map((network) => (
+            <Grid
+              item
+              container
+              key={network.name}
+              style={{ color: "white", margin: "24px 0" }}
+            >
+              <Grid
+                container
+                item
+                style={{ height: "50px" }}
+                alignContent="center"
+              >
+                <Grid container item xs={2} alignContent="center">
+                  {network.logo && (
+                    <img alt="show" src={network.logo} width="80%" />
+                  )}
+                  {network.text && (
+                    <span
+                      className={classes.subtitle}
+                      style={{ color: "#FFCD6B", padding: "12px" }}
+                    >
+                      {network.text}
+                    </span>
+                  )}
+                </Grid>
+                <Grid item xs={10} style={{ margin: "auto" }}>
+                  {network.timeline && <TimeLineBar />}
+                  <Grid
+                    container
+                    alignContent="center"
+                    style={{ width: "100%" }}
+                  >
+                    {network.shows.map((show) => (
+                      <ShowPortrait
+                        user={user}
+                        key={show.name}
+                        show={show}
+                        position={show.position}
+                      />
+                    ))}
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          ))}
+        </Grid>
+      </>
+    );
+  else
+    return (
+      <Grid
+        style={{ marginTop: "64px", height: "35vh" }}
+        className={classes.container}
+        container
+        alignItems="center"
+        item
+        spacing={4}
+        ref={containerRef}
+      >
+        <EmptyState />;
+      </Grid>
+    );
+};
+
+export { DemoSchedule, Schedule };

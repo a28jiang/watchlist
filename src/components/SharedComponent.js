@@ -332,13 +332,15 @@ export const ModalDetail = ({ option, user }) => {
           </span>
         </Grid>
         <Grid item style={{ marginTop: "16px" }}>
-          <StyledButton
-            text={exists ? "Remove from Watchlist" : "Add to Watchlist"}
-            onClick={() => {
-              if (exists) removeShow(option, user.id);
-              else storeShow(option, user.id);
-            }}
-          />
+          {user && (
+            <StyledButton
+              text={exists ? "Remove from Watchlist" : "Add to Watchlist"}
+              onClick={() => {
+                if (exists) removeShow(option, user.id);
+                else storeShow(option, user.id);
+              }}
+            />
+          )}
 
           <span
             style={{
