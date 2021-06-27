@@ -1,6 +1,5 @@
 import "firebase/auth";
 import "firebase/firestore";
-import "firebase/messaging";
 import firebase from "firebase/app";
 
 const firebaseConfig = {
@@ -18,6 +17,5 @@ firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.firestore();
-const messaging = firebase.messaging();
 
-export { auth, db, messaging };
+export { auth, db };

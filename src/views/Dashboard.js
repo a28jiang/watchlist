@@ -166,7 +166,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div style={{ zIndex: 2 }}>
+      <div>
         {error && (
           <MuiAlert
             severity="error"
@@ -175,7 +175,6 @@ const Dashboard = () => {
               position: "absolute",
               top: "5vh",
               left: "25vw",
-              zIndex: 999,
             }}
           >
             Sorry there was an error while fetching your shows
@@ -206,7 +205,6 @@ const Dashboard = () => {
           <Grid
             style={{
               width: "80%",
-              zIndex: 2,
               marginTop: "36px",
               padding: "24px",
               paddingBottom: "32px",
@@ -261,17 +259,20 @@ const Dashboard = () => {
               )}
             </Grid>
           </Grid>
-          <Grid
-            style={{ marginTop: "36px" }}
-            container
-            justify="center"
-            xs={12}
-          >
+          <Grid style={{ margin: "36px 0" }} container justify="center" xs={12}>
             <Schedule />
           </Grid>
         </Row>
       </div>
-      <Background style={{ width: "100%", position: "sticky", bottom: 0 }} />
+
+      <Background
+        style={{
+          width: "100%",
+          position: "sticky",
+          bottom: 0,
+          pointerEvents: "none",
+        }}
+      />
     </>
   );
 };

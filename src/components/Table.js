@@ -1,7 +1,7 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
-  Grid,
+  Modal,
   Table,
   TableHead,
   TableRow,
@@ -11,7 +11,7 @@ import {
   TableCell,
   TablePagination,
 } from "@material-ui/core";
-import { ArrowDownward, ArrowUpward } from "@material-ui/icons";
+import { ModalDetail } from "../components/SharedComponent";
 
 const useStyles = makeStyles((theme) => ({
   tableCell: {
@@ -29,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
     "& .MuiTableSortLabel-icon": {
       color: "white !important",
     },
+  },
+  paginationColor: {
+    color: "gray",
   },
 }));
 
@@ -95,7 +98,24 @@ const CustomTableHead = ({ classes, order, orderBy, onRequestSort }) => {
   );
 };
 
-const DataTable = ({ shows }) => {
+const DataTableRow = ({ row, user }) => {
+  const [open, setOpen] = useState(false);
+  const classes = useStyles();
+  return (
+    <>
+      <ModalDetail option={row} user={user} open={open} setOpen={setOpen} />
+
+      <TableRow style={{ cursor: "pointer" }} onClick={() => setOpen(true)}>
+        {COLUMNS.map((col) => (
+          <TableCell className={classes.tableCell}>{row[col.field]}</TableCell>
+        ))}
+        <TableCell className={classes.tableCell}></TableCell>
+      </TableRow>
+    </>
+  );
+};
+
+const DataTable = ({ shows, user }) => {
   const classes = useStyles();
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("airDate");
@@ -139,19 +159,13 @@ const DataTable = ({ shows }) => {
             {stableSort(shows.flat(), getComparator(order, orderBy))
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row) => (
-                <TableRow>
-                  {COLUMNS.map((col) => (
-                    <TableCell className={classes.tableCell}>
-                      {row[col.field]}
-                    </TableCell>
-                  ))}
-                  <TableCell className={classes.tableCell}></TableCell>
-                </TableRow>
+                <DataTableRow row={row} user={user} />
               ))}
           </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
+        className={classes.paginationColor}
         rowsPerPageOptions={[25, 50, 100]}
         component="div"
         count={shows.flat.length}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Grid, Modal } from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 import { getImg } from "../services/movieService";
 import networkImg from "../assets/watchlist_network.png";
 import { UserContext } from "../context/UserContext";
@@ -16,6 +16,7 @@ import {
   PlayCircleFilled,
 } from "@material-ui/icons";
 import { getTrending, mediaDetail } from "../services/movieService";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -35,7 +36,6 @@ const useStyles = makeStyles((theme) => ({
     marginTop: -32,
     "&:hover": {
       transform: "translate(0, -10px)",
-      zIndex: "99",
       "transition-timing-function": "ease-out",
       transition: "0.3s",
     },
@@ -45,7 +45,6 @@ const useStyles = makeStyles((theme) => ({
     display: "inline-block",
     "&:hover": {
       transform: "translate(0, -10px)",
-      zIndex: "99",
       "transition-timing-function": "ease-out",
       transition: "0.3s",
     },
@@ -98,7 +97,7 @@ const ShowPortrait = ({ show, position, user }) => {
   return (
     <>
       <div
-        style={{ cursor: "pointer", zIndex: 5 }}
+        style={{ cursor: "pointer" }}
         onClick={() => setOpen(true)}
         className={position ? classes.timeLinePic : classes.collectionPic}
         onMouseEnter={() => setToolTip(true)}
@@ -119,16 +118,8 @@ const ShowPortrait = ({ show, position, user }) => {
           </div>
         )}
       </div>
-      <Modal
-        disableEnforceFocus
-        disableAutoFocus
-        open={open}
-        onClose={() => setOpen(false)}
-      >
-        <div className={classes.modalStyle}>
-          <ModalDetail option={show} user={user} />
-        </div>
-      </Modal>
+
+      <ModalDetail option={show} user={user} open={open} setOpen={setOpen} />
     </>
   );
 };
@@ -207,7 +198,7 @@ const Schedule = () => {
   const { shows } = useContext(UserContext);
   const containerRef = useRef(null);
   const [scheduleView, setScheduleView] = useState(true);
-
+  const medAndUp = useMediaQuery("(min-width:800px)");
   const tableData = formatData(shows) || [];
   const scheduleData = formatScheduleData(tableData, timeOpt) || [];
 
@@ -220,7 +211,8 @@ const Schedule = () => {
           item
         >
           <Grid container item justify="flex-end">
-            {scheduleView &&
+            {medAndUp &&
+              scheduleView &&
               Object.keys(TIME_OPTIONS).map((key) => (
                 <TextButton
                   style={{
@@ -231,19 +223,20 @@ const Schedule = () => {
                   onClick={() => setTimeOpt(key)}
                 />
               ))}
-            {scheduleView ? (
-              <>
-                <List
+            {medAndUp &&
+              (scheduleView ? (
+                <>
+                  <List
+                    className={classes.iconStyle}
+                    onClick={() => setScheduleView(false)}
+                  />
+                </>
+              ) : (
+                <ScheduleIcon
                   className={classes.iconStyle}
-                  onClick={() => setScheduleView(false)}
+                  onClick={() => setScheduleView(true)}
                 />
-              </>
-            ) : (
-              <ScheduleIcon
-                className={classes.iconStyle}
-                onClick={() => setScheduleView(true)}
-              />
-            )}
+              ))}
           </Grid>
         </Grid>
         <Grid
@@ -253,7 +246,7 @@ const Schedule = () => {
           spacing={4}
           ref={containerRef}
         >
-          {scheduleView ? (
+          {scheduleView && medAndUp ? (
             <>
               <div style={{ width: "100%", marginBottom: "24px" }}>
                 <div style={{ width: "85%", float: "right" }}>
@@ -338,7 +331,7 @@ const Schedule = () => {
             </>
           ) : (
             <Grid style={{ minHeight: "35vh", width: "100%" }}>
-              <DataTable shows={tableData} />
+              <DataTable shows={tableData} user={user} />
             </Grid>
           )}
         </Grid>
@@ -365,6 +358,7 @@ const DemoSchedule = () => {
   const classes = useStyles();
   const [timeOpt, setTimeOpt] = useState("1W");
   const [shows, setShows] = useState([]);
+  const medAndUp = useMediaQuery("(min-width:800px)");
 
   useEffect(() => {
     getTrending().then((val) => {
@@ -382,8 +376,8 @@ const DemoSchedule = () => {
   }, []);
 
   const containerRef = useRef(null);
-
-  const scheduleData = formatScheduleData(formatData(shows), timeOpt) || [];
+  const tableData = formatData(shows);
+  const scheduleData = formatScheduleData(tableData, timeOpt) || [];
 
   if (shows.length)
     return (
@@ -394,16 +388,17 @@ const DemoSchedule = () => {
           item
         >
           <Grid container item justify="flex-end">
-            {Object.keys(TIME_OPTIONS).map((key) => (
-              <TextButton
-                style={{
-                  padding: "12px",
-                  color: key === timeOpt ? "#FFEDC9" : "#FFCD6B",
-                }}
-                text={key}
-                onClick={() => setTimeOpt(key)}
-              />
-            ))}
+            {medAndUp &&
+              Object.keys(TIME_OPTIONS).map((key) => (
+                <TextButton
+                  style={{
+                    padding: "12px",
+                    color: key === timeOpt ? "#FFEDC9" : "#FFCD6B",
+                  }}
+                  text={key}
+                  onClick={() => setTimeOpt(key)}
+                />
+              ))}
           </Grid>
         </Grid>
         <Grid
@@ -413,86 +408,94 @@ const DemoSchedule = () => {
           spacing={4}
           ref={containerRef}
         >
-          <div style={{ width: "100%", marginBottom: "24px" }}>
-            <div style={{ width: "85%", float: "right" }}>
-              {TIME_OPTIONS[timeOpt].labels.map((label, index) => (
-                <div
-                  key={index}
-                  style={{
-                    width: `${100 / TIME_OPTIONS[timeOpt].labels.length}%`,
-                    display: "inline-block",
-                    textAlign: "center",
-                  }}
-                >
-                  {label === "now" ? (
-                    <PlayCircleFilled style={{ color: "white" }} />
-                  ) : (
-                    <>
-                      <span style={{ color: "white", fontWeight: "bold" }}>
-                        {label}
-                      </span>
-                      <div
-                        style={{
-                          margin: "12px auto",
-                          marginBottom: `-80px`,
-                          position: "relative",
-                          backgroundColor: "#696969",
-                          height: `75px`,
-                          width: "1px",
-                        }}
-                      />
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          {scheduleData.slice(0, 2).map((network) => (
-            <Grid
-              item
-              container
-              key={network.name}
-              style={{ color: "white", margin: "24px 0" }}
-            >
-              <Grid
-                container
-                item
-                style={{ height: "50px" }}
-                alignContent="center"
-              >
-                <Grid container item xs={2} alignContent="center">
-                  {network.logo && (
-                    <img alt="show" src={network.logo} width="80%" />
-                  )}
-                  {network.text && (
-                    <span
-                      className={classes.subtitle}
-                      style={{ color: "#FFCD6B", padding: "12px" }}
+          {medAndUp ? (
+            <>
+              <div style={{ width: "100%", marginBottom: "24px" }}>
+                <div style={{ width: "85%", float: "right" }}>
+                  {TIME_OPTIONS[timeOpt].labels.map((label, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        width: `${100 / TIME_OPTIONS[timeOpt].labels.length}%`,
+                        display: "inline-block",
+                        textAlign: "center",
+                      }}
                     >
-                      {network.text}
-                    </span>
-                  )}
-                </Grid>
-                <Grid item xs={10} style={{ margin: "auto" }}>
-                  {network.timeline && <TimeLineBar />}
+                      {label === "now" ? (
+                        <PlayCircleFilled style={{ color: "white" }} />
+                      ) : (
+                        <>
+                          <span style={{ color: "white", fontWeight: "bold" }}>
+                            {label}
+                          </span>
+                          <div
+                            style={{
+                              margin: "12px auto",
+                              marginBottom: `-80px`,
+                              position: "relative",
+                              backgroundColor: "#696969",
+                              height: `75px`,
+                              width: "1px",
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {scheduleData.slice(0, 2).map((network) => (
+                <Grid
+                  item
+                  container
+                  key={network.name}
+                  style={{ color: "white", margin: "24px 0" }}
+                >
                   <Grid
                     container
+                    item
+                    style={{ height: "50px" }}
                     alignContent="center"
-                    style={{ width: "100%" }}
                   >
-                    {network.shows.map((show) => (
-                      <ShowPortrait
-                        user={user}
-                        key={show.name}
-                        show={show}
-                        position={show.position}
-                      />
-                    ))}
+                    <Grid container item xs={2} alignContent="center">
+                      {network.logo && (
+                        <img alt="show" src={network.logo} width="80%" />
+                      )}
+                      {network.text && (
+                        <span
+                          className={classes.subtitle}
+                          style={{ color: "#FFCD6B", padding: "12px" }}
+                        >
+                          {network.text}
+                        </span>
+                      )}
+                    </Grid>
+                    <Grid item xs={10} style={{ margin: "auto" }}>
+                      {network.timeline && <TimeLineBar />}
+                      <Grid
+                        container
+                        alignContent="center"
+                        style={{ width: "100%" }}
+                      >
+                        {network.shows.map((show) => (
+                          <ShowPortrait
+                            user={user}
+                            key={show.name}
+                            show={show}
+                            position={show.position}
+                          />
+                        ))}
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Grid>
-              </Grid>
+              ))}
+            </>
+          ) : (
+            <Grid style={{ minHeight: "35vh", width: "100%" }}>
+              <DataTable shows={tableData} user={user} />
             </Grid>
-          ))}
+          )}
         </Grid>
       </>
     );

@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "bold",
     color: "#FFEDC9",
     cursor: "pointer",
-    fontSize: "3vw",
+    fontSize: "32px",
   },
 }));
 
@@ -89,7 +89,7 @@ export const Navbar = () => {
 
   return (
     <Grid container className={classes.navbar} xs={12}>
-      <Grid item xs={6}>
+      <Grid container alignItems="center" item xs={6}>
         {history.location.pathname !== "/" && (
           <span className={classes.header}>
             watch<span style={{ color: "#FFCD6B" }}>list.</span>

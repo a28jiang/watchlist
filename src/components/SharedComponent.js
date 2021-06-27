@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { InputBase, Button, Grid } from "@material-ui/core";
+import { InputBase, Button, Grid, Modal } from "@material-ui/core";
 import { StarBorder, Star, StarHalf, AddAlert } from "@material-ui/icons";
 import { UserContext } from "../context/UserContext";
 import Image from "material-ui-image";
@@ -8,24 +8,38 @@ import { getImg } from "../services/movieService";
 import lost from "../assets/lost.png";
 import { storeShow, removeShow } from "../services/userService";
 import { dateFromNow } from "../utils/dateUtil";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import LinesEllipsis from "react-lines-ellipsis";
 
 const useStyles = makeStyles((theme) => ({
   userField: {
     width: "100%",
   },
+  modalStyle: {
+    position: "absolute",
+    top: "10vh",
+    width: "60vw",
+    left: "20vw",
+    borderRadius: "16px",
+  },
   baseButton: {
     marginRight: "16px",
     minWidth: "150px",
     padding: "4px 16px",
-    backgroundColor: "#FFCD6B !important",
+    backgroundColor: (props) =>
+      props.color ? `${props.color} !important` : "#FFCD6B !important",
     borderRadius: "24px",
   },
   outlineButton: {
     marginRight: "16px",
     padding: "4px 16px",
-    border: "4px solid #FFCD6B",
+    border: (props) =>
+      props.color ? `4px solid ${props.color}` : "4px solid #FFCD6B",
     borderRadius: "24px",
-    color: "#FFCD6B",
+    color: (props) => {
+      console.log(props);
+      return props.color ? `${props.color}` : "#FFCD6B";
+    },
   },
   buttonText: {
     fontWeight: 800,
@@ -35,6 +49,30 @@ const useStyles = makeStyles((theme) => ({
   emptyText: {
     fontSize: "18px",
     color: "gray",
+  },
+  mediaTitleText: {
+    color: "#FFCD6B",
+    fontWeight: 700,
+    fontSize: "36px",
+    marginRight: "16px",
+    [theme.breakpoints.down("md")]: {
+      fontSize: "24px",
+    },
+  },
+  mediaSubtitleText: {
+    color: "#FFEDC9",
+    fontSize: "24px",
+    margin: "auto 16px auto 0",
+    [theme.breakpoints.down("md")]: {
+      fontSize: "16px",
+    },
+  },
+  mediaBodyText: {
+    color: "#c4c4c4",
+    fontSize: "20px",
+    [theme.breakpoints.down("md")]: {
+      fontSize: "16px",
+    },
   },
 }));
 
@@ -77,12 +115,19 @@ export const StyledTextField = ({
     />
   );
 };
-export const StyledButton = ({ text, onClick, outline }) => {
-  const classes = useStyles();
+export const StyledButton = ({
+  text,
+  onClick,
+  outline,
+  setColor,
+  ...props
+}) => {
+  const classes = useStyles({ color: setColor });
   return (
     <Button
       className={outline ? classes.outlineButton : classes.baseButton}
       onClick={onClick}
+      {...props}
     >
       <span style={{ fontSize: "1rem", fontWeight: outline ? "bold" : 800 }}>
         {text}
@@ -196,37 +241,35 @@ export const renderDate = (detail) => {
 };
 
 export const MediaDetail = ({ option, user }) => {
+  const classes = useStyles();
   const { shows } = useContext(UserContext);
+  const medAndUp = useMediaQuery("(min-width:960px)");
   const exists = shows.find((show) => show.id === option.id);
+  const addText = "Add to Watchlist";
+  const removeText = "Remove from Watchlist";
+
   return (
     <>
-      <MediaCard key={option.id} option={option} />
+      {medAndUp && <MediaCard key={option.id} option={option} />}
       <Grid
         container
         direction="column"
         item
         spacing={4}
-        xs={9}
+        md={9}
+        xs={12}
         style={{ color: "white", paddingLeft: "32px" }}
       >
         <Grid item container>
-          <span
-            style={{
-              color: "#FFCD6B",
-              fontWeight: 700,
-              fontSize: "36px",
-            }}
-          >
-            {option.name}
+          <span className={classes.mediaTitleText}>{option.name}</span>
+          <span className={classes.mediaSubtitleText}>
+            {renderDate(option)}
+            {renderStars(option.vote_average / 2, medAndUp ? "24px" : "16px")}
           </span>
-          <span
-            style={{
-              color: "#FFEDC9",
-              fontSize: "24px",
-              margin: "auto 16px",
-            }}
-          >{`${option.number_of_episodes} episodes`}</span>
-          {option.next_episode_to_air && false && (
+          <span className={classes.mediaSubtitleText}>
+            {`${option.number_of_episodes} episodes`}
+          </span>
+          {/* {option.next_episode_to_air && false && (
             <AddAlert
               onClick={(option) => console.log("PLACEHOLDER NOTIF")}
               style={{
@@ -237,50 +280,64 @@ export const MediaDetail = ({ option, user }) => {
                 cursor: "pointer",
               }}
             />
-          )}
-          <span
-            style={{
-              fontSize: "24px",
-              color: "#FFEDC9",
-              margin: "auto 12px",
-            }}
-          >
-            {renderDate(option)} {renderStars(option.vote_average / 2, "24px")}
-          </span>
+          )} */}
         </Grid>
         <Grid item style={{ marginTop: "-12px" }}>
           <StyledButton
-            text={exists ? "Remove from Watchlist" : "Add to Watchlist"}
+            text={exists ? removeText : addText}
             onClick={() => {
               if (exists) removeShow(option, user.id);
               else storeShow(option, user.id);
             }}
           />
-          <span
-            style={{
-              fontSize: "20px",
-              color: "#FFCD6B",
-              marginLeft: "16px",
-            }}
-          >
-            {option.next_episode_to_air &&
-              `Episode ${
-                option.next_episode_to_air.episode_number
-              } airing ${dateFromNow(option.next_episode_to_air.air_date)}`}
-          </span>
         </Grid>
         <Grid item>
-          <span style={{ color: "#c4c4c4", fontSize: "1.5vw" }}>
-            {option.overview || "Sorry! Unable to fetch show summary."}
+          <span className={classes.mediaBodyText}>
+            {option.overview.length ? (
+              <LinesEllipsis text={option.overview} maxLine={6} />
+            ) : (
+              "Sorry! Unable to fetch show summary."
+            )}
           </span>
+          <Grid item style={{ paddingTop: "32px" }}>
+            <span
+              className={classes.mediaSubtitleText}
+              style={{
+                color: "#FFCD6B",
+              }}
+            >
+              {option.next_episode_to_air &&
+                `Episode ${
+                  option.next_episode_to_air.episode_number
+                } airing ${dateFromNow(option.next_episode_to_air.air_date)}`}
+            </span>
+          </Grid>
         </Grid>
       </Grid>
     </>
   );
 };
-export const ModalDetail = ({ option, user }) => {
+
+export const ModalDetail = ({ option, user, open, setOpen }) => {
+  const classes = useStyles();
+  return (
+    <Modal
+      disableEnforceFocus
+      disableAutoFocus
+      open={open}
+      onClose={() => setOpen(false)}
+    >
+      <div className={classes.modalStyle}>
+        <ShowDetail option={option} user={user} />
+      </div>
+    </Modal>
+  );
+};
+
+export const ShowDetail = ({ option, user }) => {
   const classes = useStyles();
   const { shows } = useContext(UserContext);
+
   const exists = shows.find((show) => show.id === option.id);
   return (
     <Grid container>
