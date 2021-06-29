@@ -166,13 +166,14 @@ export const renderStars = (val, width) => {
 };
 
 export const MediaCard = ({ option, setSelectedOption }) => {
+  const medAndUp = useMediaQuery("(min-width:960px)");
   const [toolTip, setToolTip] = useState(false);
   return (
     <Grid
       onClick={() => {
         setSelectedOption(option);
       }}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", height: medAndUp ? "30vw" : "60vw" }}
       onMouseEnter={() => setToolTip(true)}
       onMouseLeave={() => setToolTip(false)}
       item
@@ -184,6 +185,8 @@ export const MediaCard = ({ option, setSelectedOption }) => {
         style={{
           objectFit: "cover",
           pointer: "cursor",
+          height: "100%",
+          width: "100%",
           borderRadius: "12px",
           "aspect-ratio": "0.6",
         }}
